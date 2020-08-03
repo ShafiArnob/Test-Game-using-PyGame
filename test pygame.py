@@ -15,32 +15,47 @@ char = pg.image.load('picture/standing.png')
 
 clock = pg.time.Clock()
 
-x,y,width,height,vel = 50,425,64,64,5
-isJump = False
-jumpCount = 10
-left = False
-right = False
-walkCount = 0
+class player(object):
+	def __init__(self,x,y,width,height):
+		self.x = x
+		self.y = y
+		self.width = width
+		self.height = height
+		self.vel = 5
+		self.isJump = False
+		self.jumpCount = 10
+		self.left = False
+		self.right = False
+		self.walkCount = 0
+	
+	def draw(self,win):
+		if self.walkCount+1 >= 27:
+			self.walkCount = 0
+		if self.left:
+			win.blit(walkLeft[self.walkCount//3], (self.x, self.y))
+			self.walkCount += 1
+		elif self.right:
+			win.blit(walkRight[self.walkCount//3], (self.x, self.y))
+			self.walkCount += 1
+		else:
+			win.blit(char, (self.x, self.y))
+# x,y,width,height,vel = 50,425,64,64,5
+# isJump = False
+# jumpCount = 10
+# left = False
+# right = False
+# walkCount = 0
 
 
 def redrawGameWindow():
 	global walkCount
 	win.blit(bg,(0,0))
-
-	if walkCount+1 >= 27:
-		walkCount = 0
-	if left:
-		win.blit(walkLeft[walkCount//3], (x,y))
-		walkCount+=1
-	elif right:
-		win.blit(walkRight[walkCount//3], (x, y))
-		walkCount += 1
-	else:
-		win.blit(char,(x,y))
+	man.draw(win)	
 	pg.display.update()
 
 
 # MainLoop
+man = player(300,410,64,64)
 run = True
 while run:
 	clock.tick(27)
@@ -51,34 +66,34 @@ while run:
 
 # Use Keyboar keys
 	keys = pg.key.get_pressed()
-	if keys[pg.K_LEFT] and x>vel:
-		x -= vel
-		left = True
-		right = False
-	elif keys[pg.K_RIGHT] and x < 500-width-vel:
-		x += vel
-		left = False
-		right = True
+	if keys[pg.K_LEFT] and man.x > man.vel-15:
+		man.x -= man.vel
+		man.left = True
+		man.right = False
+	elif keys[pg.K_RIGHT] and man.x < 510-man.width-man.vel:
+		man.x += man.vel
+		man.left = False
+		man.right = True
 	else:
-		right = False
-		left = False
-		walkCount = 0
+		man.right = False
+		man.left = False
+		man.walkCount = 0
 
-	if not(isJump):
+	if not(man.isJump):
 		if keys[pg.K_SPACE]:
-			isJump = True
-			right = False
-			left = False
-			walkCount = 0
+			man.isJump = True
+			man.right = False
+			man.left = False
+			man.walkCount = 0
 	else:
-		if jumpCount>=-10:
+		if man.jumpCount >= -10:
 			neg = 1
-			if jumpCount<0:
+			if man.jumpCount < 0:
 				neg = -1
-			y-=(jumpCount**2)*0.5*neg
-			jumpCount-=1
+			man.y -= (man.jumpCount**2)*0.5*neg
+			man.jumpCount -= 1
 		else:
-			isJump = False
-			jumpCount = 10
+			man.isJump = False
+			man.jumpCount = 10
 	redrawGameWindow()
 pg.quit()
