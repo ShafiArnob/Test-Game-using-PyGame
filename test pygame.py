@@ -27,28 +27,47 @@ class player(object):
 		self.left = False
 		self.right = False
 		self.walkCount = 0
+		self.standing = True
 	
 	def draw(self,win):
 		if self.walkCount+1 >= 27:
 			self.walkCount = 0
-		if self.left:
-			win.blit(walkLeft[self.walkCount//3], (self.x, self.y))
-			self.walkCount += 1
-		elif self.right:
-			win.blit(walkRight[self.walkCount//3], (self.x, self.y))
-			self.walkCount += 1
+		if not(self.standing):
+			if self.left:
+				win.blit(walkLeft[self.walkCount//3], (self.x, self.y))
+				self.walkCount += 1
+			elif self.right:
+				win.blit(walkRight[self.walkCount//3], (self.x, self.y))
+				self.walkCount += 1
 		else:
-			win.blit(char, (self.x, self.y))
+			if self.right:
+				win.blit(walkRight[0],(self.x,self.y))
+			else:
+				win.blit(walkLeft[0],(self.x,self.y))
+
+class projectlile(object):
+	def __init__(self,x,y,radius,color,facing):
+		self.x = x
+		self.y = y
+		self.radius = radius
+		self.color = color
+		self.facing = facing
+		self.vel = 10 * facing
+	def draw(self,win):
+		pg.draw.circle(win,self.color,(self.x,self.y),self.radius)
 
 def redrawGameWindow():
-	global walkCount
-	win.blit(bg,(0,0))
-	man.draw(win)	
+	#global walkCount
+	win.blit(bg,(0,0)) # Background
+	man.draw(win)
+	for bullet in bullets: # Bullets
+		bullet.draw(win)	
 	pg.display.update()
 
 
 # MainLoop
 man = player(300,410,64,64)
+bullets = []
 run = True
 while run:
 	clock.tick(27)
@@ -56,24 +75,38 @@ while run:
 	for event in pg.event.get():
 		if event.type == pg.QUIT:
 			run = False
-
-# Use Keyboar keys
+	# Bullets 
+	for bullet in bullets:
+		if bullet.x<500 and bullet.x>0:
+			bullet.x+=bullet.vel
+		else:
+			bullets.pop(bullets.index(bullet))
+	# Use Keyboard keys
 	keys = pg.key.get_pressed()
+	if keys[pg.K_SPACE]:
+		if man.left:
+			facing = -1
+		else:
+			facing = 1
+
+		if len(bullets)<5:
+			bullets.append(projectlile(round(man.x+man.width//2),round(man.y+man.height//2),2,(0,0,0),facing))
 	if keys[pg.K_LEFT] and man.x > man.vel-15:
 		man.x -= man.vel
 		man.left = True
 		man.right = False
+		man.standing = False
 	elif keys[pg.K_RIGHT] and man.x < 510-man.width-man.vel:
 		man.x += man.vel
 		man.left = False
 		man.right = True
+		man.standing = False
 	else:
-		man.right = False
-		man.left = False
+		man.standing = True
 		man.walkCount = 0
 
 	if not(man.isJump):
-		if keys[pg.K_SPACE]:
+		if keys[pg.K_UP]:
 			man.isJump = True
 			man.right = False
 			man.left = False
