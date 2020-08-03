@@ -39,13 +39,6 @@ class player(object):
 			self.walkCount += 1
 		else:
 			win.blit(char, (self.x, self.y))
-# x,y,width,height,vel = 50,425,64,64,5
-# isJump = False
-# jumpCount = 10
-# left = False
-# right = False
-# walkCount = 0
-
 
 def redrawGameWindow():
 	global walkCount
