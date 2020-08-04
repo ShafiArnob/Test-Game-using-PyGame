@@ -24,7 +24,8 @@ class player(object):
 		self.right = False
 		self.walkCount = 0
 		self.standing = True
-	
+		self.hitbox = (self.x+17, self.y+11, 29, 52)
+
 	def draw(self,win):
 		if self.walkCount+1 >= 27:
 			self.walkCount = 0
@@ -40,6 +41,8 @@ class player(object):
 				win.blit(walkRight[0],(self.x,self.y))
 			else:
 				win.blit(walkLeft[0],(self.x,self.y))
+		self.hitbox = (self.x+17, self.y+11, 29, 52)
+		pg.draw.rect(win,(255,0,0),self.hitbox,2)
 
 class projectlile(object):
 	def __init__(self,x,y,radius,color,facing):
@@ -64,7 +67,7 @@ class enemy(object):
 		self.path = [self.x,self.y]
 		self.walkCount = 0
 		self.vel = 3
-
+		self.hitbox = (self.x+17, self.y+2, 31, 52)
 	def draw(self,win):
 		self.move()
 		if self.walkCount+1>=33: # BC 11 images of enemy
@@ -75,7 +78,8 @@ class enemy(object):
 		else:
 			win.blit(self.walkLeft[self.walkCount//3],(self.x,self.y))
 			self.walkCount+=1
-
+		self.hitbox = (self.x+17, self.y+2, 31, 52)
+		pg.draw.rect(win, (255, 0, 0), self.hitbox, 2)
 	def move(self):
 		if self.vel>0:
 			if self.x+self.vel<self.path[1]:
@@ -89,7 +93,8 @@ class enemy(object):
 			else:
 				self.vel = self.vel*-1
 				self.walkCount = 0
-
+	def hit(self):
+		print('Hit')
 	
 def redrawGameWindow():
 	#global walkCount
@@ -100,34 +105,46 @@ def redrawGameWindow():
 		bullet.draw(win)	
 	pg.display.update()
 
-
 # MainLoop
 man = player(300,410,64,64)
 goblin = enemy(100,410,64,64,450)
+shootLoop = 0
 bullets = []
 run = True
 while run:
 	clock.tick(27)
+	if shootLoop>0:
+		shootLoop+=1
+	if shootLoop>3:
+		shootLoop = 0
 
 	for event in pg.event.get():
 		if event.type == pg.QUIT:
 			run = False
 	# Bullets 
 	for bullet in bullets:
+		if bullet.y-bullet.radius<goblin.hitbox[1]+goblin.hitbox[3]  and bullet.y+bullet.radius>goblin.hitbox[1]:
+			if bullet.x+bullet.radius>goblin.hitbox[0] and bullet.x-bullet.radius<goblin.hitbox[0]+goblin.hitbox[2]:
+				goblin.hit()
+				bullets.pop(bullets.index(bullet))
+
+
 		if bullet.x<500 and bullet.x>0:
 			bullet.x+=bullet.vel
 		else:
 			bullets.pop(bullets.index(bullet))
 	# Use Keyboard keys
 	keys = pg.key.get_pressed()
-	if keys[pg.K_SPACE]:
+	if keys[pg.K_SPACE] and shootLoop==0:
 		if man.left:
 			facing = -1
 		else:
 			facing = 1
 
 		if len(bullets)<5:
-			bullets.append(projectlile(round(man.x+man.width//2),round(man.y+man.height//2),2,(0,0,0),facing))
+			bullets.append(projectlile(round(man.x+man.width//2),round(man.y+man.height//2),10,(0,0,0),facing))
+		shootLoop = 1
+
 	if keys[pg.K_LEFT] and man.x > man.vel-15:
 		man.x -= man.vel
 		man.left = True
