@@ -4,12 +4,8 @@ pg.init()
 win = pg.display.set_mode((500,480))
 pg.display.set_caption('First game')
 
-walkRight = [pg.image.load('picture/R1.png'), pg.image.load('picture/R2.png'), pg.image.load('picture/R3.png'), pg.image.load('picture/R4.png'),
-			 pg.image.load('picture/R5.png'), pg.image.load('picture/R6.png'), pg.image.load('picture/R7.png'), pg.image.load('picture/R8.png'),
-             pg.image.load('picture/R9.png')]
-walkLeft = [pg.image.load('picture/L1.png'), pg.image.load('picture/L2.png'), pg.image.load('picture/L3.png'), pg.image.load('picture/L4.png'),
-            pg.image.load('picture/L5.png'), pg.image.load('picture/L6.png'), pg.image.load('picture/L7.png'), pg.image.load('picture/L8.png'),
-            pg.image.load('picture/L9.png')]
+walkRight = [pg.image.load('picture/R1.png'), pg.image.load('picture/R2.png'), pg.image.load('picture/R3.png'), pg.image.load('picture/R4.png'),pg.image.load('picture/R5.png'), pg.image.load('picture/R6.png'), pg.image.load('picture/R7.png'), pg.image.load('picture/R8.png'),pg.image.load('picture/R9.png')]
+walkLeft = [pg.image.load('picture/L1.png'), pg.image.load('picture/L2.png'), pg.image.load('picture/L3.png'), pg.image.load('picture/L4.png'),pg.image.load('picture/L5.png'), pg.image.load('picture/L6.png'), pg.image.load('picture/L7.png'), pg.image.load('picture/L8.png'),pg.image.load('picture/L9.png')]
 bg = pg.image.load('picture/bg.jpg')
 char = pg.image.load('picture/standing.png')
 
@@ -56,10 +52,50 @@ class projectlile(object):
 	def draw(self,win):
 		pg.draw.circle(win,self.color,(self.x,self.y),self.radius)
 
+class enemy(object):
+	walkRight = [pg.image.load('picture/R1E.png'), pg.image.load('picture/R2E.png'), pg.image.load('picture/R3E.png'), pg.image.load('picture/R4E.png'),pg.image.load('picture/R5E.png'), pg.image.load('picture/R6E.png'), pg.image.load('picture/R7E.png'), pg.image.load('picture/R8E.png'),pg.image.load('picture/R9E.png'), pg.image.load('picture/R10E.png'), pg.image.load('picture/R11E.png')]
+	walkLeft = [pg.image.load('picture/L1E.png'), pg.image.load('picture/L2E.png'), pg.image.load('picture/L3E.png'),pg.image.load('picture/L4E.png'), pg.image.load('picture/L5E.png'), pg.image.load('picture/L6E.png'),pg.image.load('picture/L7E.png'), pg.image.load('picture/L8E.png'),pg.image.load('picture/L9E.png'),pg.image.load('picture/L10E.png'), pg.image.load('picture/L11E.png')]
+	def __init__(self,x,y,width,height,end):
+		self.x = x
+		self.y = y
+		self.width = width
+		self.height = height
+		self.end = end
+		self.path = [self.x,self.y]
+		self.walkCount = 0
+		self.vel = 3
+
+	def draw(self,win):
+		self.move()
+		if self.walkCount+1>=33: # BC 11 images of enemy
+			self.walkCount = 0
+		if self.vel>0:
+			win.blit(self.walkRight[self.walkCount//3],(self.x,self.y))
+			self.walkCount+=1
+		else:
+			win.blit(self.walkLeft[self.walkCount//3],(self.x,self.y))
+			self.walkCount+=1
+
+	def move(self):
+		if self.vel>0:
+			if self.x+self.vel<self.path[1]:
+				self.x+=self.vel
+			else:
+				self.vel = self.vel*-1
+				self.walkCount = 0
+		else:
+			if self.x - self.vel>self.path[0]:
+				self.x+=self.vel
+			else:
+				self.vel = self.vel*-1
+				self.walkCount = 0
+
+	
 def redrawGameWindow():
 	#global walkCount
 	win.blit(bg,(0,0)) # Background
 	man.draw(win)
+	goblin.draw(win)
 	for bullet in bullets: # Bullets
 		bullet.draw(win)	
 	pg.display.update()
@@ -67,6 +103,7 @@ def redrawGameWindow():
 
 # MainLoop
 man = player(300,410,64,64)
+goblin = enemy(100,410,64,64,450)
 bullets = []
 run = True
 while run:
