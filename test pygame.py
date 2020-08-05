@@ -10,7 +10,7 @@ bg = pg.image.load('picture/bg.jpg')
 char = pg.image.load('picture/standing.png')
 
 clock = pg.time.Clock()
-
+score = 0
 class player(object):
 	def __init__(self,x,y,width,height):
 		self.x = x
@@ -42,7 +42,7 @@ class player(object):
 			else:
 				win.blit(walkLeft[0],(self.x,self.y))
 		self.hitbox = (self.x+17, self.y+11, 29, 52)
-		pg.draw.rect(win,(255,0,0),self.hitbox,2)
+		#pg.draw.rect(win,(255,0,0),self.hitbox,2)
 
 class projectlile(object):
 	def __init__(self,x,y,radius,color,facing):
@@ -68,18 +68,23 @@ class enemy(object):
 		self.walkCount = 0
 		self.vel = 3
 		self.hitbox = (self.x+17, self.y+2, 31, 52)
+		self.health = 10
+		self.visible = True
 	def draw(self,win):
 		self.move()
-		if self.walkCount+1>=33: # BC 11 images of enemy
-			self.walkCount = 0
-		if self.vel>0:
-			win.blit(self.walkRight[self.walkCount//3],(self.x,self.y))
-			self.walkCount+=1
-		else:
-			win.blit(self.walkLeft[self.walkCount//3],(self.x,self.y))
-			self.walkCount+=1
-		self.hitbox = (self.x+17, self.y+2, 31, 52)
-		pg.draw.rect(win, (255, 0, 0), self.hitbox, 2)
+		if self.visible: # if visible then draw
+			if self.walkCount+1>=33: # BC 11 images of enemy
+				self.walkCount = 0
+			if self.vel>0:
+				win.blit(self.walkRight[self.walkCount//3],(self.x,self.y))
+				self.walkCount+=1
+			else:
+				win.blit(self.walkLeft[self.walkCount//3],(self.x,self.y))
+				self.walkCount+=1
+			pg.draw.rect(win,(255,0,0),(self.hitbox[0],self.hitbox[1]-20,50,10)) # red healthbar
+			pg.draw.rect(win, (0,128, 0), (self.hitbox[0], self.hitbox[1]-20, 50-((50/10)*(10-self.health)), 10))# green healthbar
+			self.hitbox = (self.x+17, self.y+2, 31, 52)
+			#pg.draw.rect(win, (255, 0, 0), self.hitbox, 2)
 	def move(self):
 		if self.vel>0:
 			if self.x+self.vel<self.path[1]:
@@ -94,11 +99,17 @@ class enemy(object):
 				self.vel = self.vel*-1
 				self.walkCount = 0
 	def hit(self):
+		if self.health>0:
+			self.health-=1
+		else:
+			self.visible =False
 		print('Hit')
 	
 def redrawGameWindow():
 	#global walkCount
 	win.blit(bg,(0,0)) # Background
+	text = font.render('Score: '+str(score),1,(0,0,0))
+	win.blit(text,(10,10))
 	man.draw(win)
 	goblin.draw(win)
 	for bullet in bullets: # Bullets
@@ -106,6 +117,7 @@ def redrawGameWindow():
 	pg.display.update()
 
 # MainLoop
+font = pg.font.SysFont('comicsans',30,True)
 man = player(300,410,64,64)
 goblin = enemy(100,410,64,64,450)
 shootLoop = 0
@@ -125,6 +137,7 @@ while run:
 	for bullet in bullets:
 		if bullet.y-bullet.radius<goblin.hitbox[1]+goblin.hitbox[3]  and bullet.y+bullet.radius>goblin.hitbox[1]:
 			if bullet.x+bullet.radius>goblin.hitbox[0] and bullet.x-bullet.radius<goblin.hitbox[0]+goblin.hitbox[2]:
+				score+=1
 				goblin.hit()
 				bullets.pop(bullets.index(bullet))
 
