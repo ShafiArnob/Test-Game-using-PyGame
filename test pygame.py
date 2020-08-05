@@ -10,6 +10,12 @@ bg = pg.image.load('picture/bg.jpg')
 char = pg.image.load('picture/standing.png')
 
 clock = pg.time.Clock()
+
+bulletSound = pg.mixer.Sound('sound/bullet.wav')
+hitSound = pg.mixer.Sound('sound/hit.wav')
+music = pg.mixer.music.load('sound/music.mp3')
+pg.mixer.music.play(-1)
+
 score = 0
 class player(object):
 	def __init__(self,x,y,width,height):
@@ -44,6 +50,26 @@ class player(object):
 		self.hitbox = (self.x+17, self.y+11, 29, 52)
 		#pg.draw.rect(win,(255,0,0),self.hitbox,2)
 
+	def hit(self):
+		self.isJump = False
+		self.jumpCount = 10
+		self.x = 60
+		self.y = 410
+		self.walkCount = 0
+		font1 = pg.font.SysFont('comicsans',100)
+		text = font1.render('-5',1,(255,0,0))
+		win.blit(text,(250 - (text.get_width()/2),200))
+		pg.display.update()
+		i = 0
+		while i<100:
+			pg.time.delay(10)
+			i+=1
+			for event in pg.event.get():
+				if event.type == pg.QUIT:
+					i = 301
+					pg.quit()
+
+
 class projectlile(object):
 	def __init__(self,x,y,radius,color,facing):
 		self.x = x
@@ -55,7 +81,7 @@ class projectlile(object):
 	def draw(self,win):
 		pg.draw.circle(win,self.color,(self.x,self.y),self.radius)
 
-class enemy(object):
+class enemy(object): 
 	walkRight = [pg.image.load('picture/R1E.png'), pg.image.load('picture/R2E.png'), pg.image.load('picture/R3E.png'), pg.image.load('picture/R4E.png'),pg.image.load('picture/R5E.png'), pg.image.load('picture/R6E.png'), pg.image.load('picture/R7E.png'), pg.image.load('picture/R8E.png'),pg.image.load('picture/R9E.png'), pg.image.load('picture/R10E.png'), pg.image.load('picture/R11E.png')]
 	walkLeft = [pg.image.load('picture/L1E.png'), pg.image.load('picture/L2E.png'), pg.image.load('picture/L3E.png'),pg.image.load('picture/L4E.png'), pg.image.load('picture/L5E.png'), pg.image.load('picture/L6E.png'),pg.image.load('picture/L7E.png'), pg.image.load('picture/L8E.png'),pg.image.load('picture/L9E.png'),pg.image.load('picture/L10E.png'), pg.image.load('picture/L11E.png')]
 	def __init__(self,x,y,width,height,end):
@@ -125,6 +151,13 @@ bullets = []
 run = True
 while run:
 	clock.tick(27)
+
+	if goblin.visible == True:
+		if man.hitbox[1] < goblin.hitbox[1]+goblin.hitbox[3] and man.hitbox[1]+man.hitbox[3] > goblin.hitbox[1]:
+			if man.hitbox[0]+man.hitbox[2] > goblin.hitbox[0] and man.hitbox[0] < goblin.hitbox[0]+goblin.hitbox[2]:
+				score -=5
+				man.hit()
+
 	if shootLoop>0:
 		shootLoop+=1
 	if shootLoop>3:
@@ -137,6 +170,7 @@ while run:
 	for bullet in bullets:
 		if bullet.y-bullet.radius<goblin.hitbox[1]+goblin.hitbox[3]  and bullet.y+bullet.radius>goblin.hitbox[1]:
 			if bullet.x+bullet.radius>goblin.hitbox[0] and bullet.x-bullet.radius<goblin.hitbox[0]+goblin.hitbox[2]:
+				hitSound.play()
 				score+=1
 				goblin.hit()
 				bullets.pop(bullets.index(bullet))
@@ -149,6 +183,7 @@ while run:
 	# Use Keyboard keys
 	keys = pg.key.get_pressed()
 	if keys[pg.K_SPACE] and shootLoop==0:
+		bulletSound.play()
 		if man.left:
 			facing = -1
 		else:
